@@ -1,0 +1,19 @@
+{
+  "name": "ktu-result-proxy",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "axios": "^1.0.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.0",
+    "node-cache": "^5.1.2",
+    "p-limit": "^3.1.0"
+  },
+  "optionalDependencies": {
+    "playwright": "^1.45.0"
+  }
+}
