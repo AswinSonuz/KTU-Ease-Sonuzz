@@ -1,106 +1,41 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>KTU Result Finder — Sonuzz Theme</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KTU Result Checker</title>
 </head>
-<body class="theme-dark">
-  <div class="container">
-    <header class="header">
-      <h1>KTU Result Finder</h1>
-      <div class="theme-toggle">
-        <label>
-          <input id="themeToggle" type="checkbox" />
-          <span>Light</span>
-        </label>
-      </div>
-    </header>
+<body>
+    <h1>Check Your KTU Result</h1>
+    <input type="text" id="rollInput" placeholder="Enter Roll Number">
+    <button id="submitBtn">Check Result</button>
+    <p id="result"></p>
 
-    <main class="card">
-      <p class="lead">Find your KTU marks quickly. Enter your roll number below.</p>
+    <script>
+        const submitBtn = document.getElementById("submitBtn");
+        const rollInput = document.getElementById("rollInput");
+        const resultDisplay = document.getElementById("result");
 
-      <div class="form">
-        <input id="roll" placeholder="Enter roll number (e.g. 1234567)" />
-        <button id="fetchBtn">Find Result</button>
-      </div>
+        submitBtn.addEventListener("click", () => {
+            const roll = rollInput.value.trim();
+            if (!roll) {
+                alert("Please enter a roll number");
+                return;
+            }
 
-      <div id="status" class="status">Idle</div>
+            // Replace with your Vercel backend URL
+            const endpoint = `https://<your-backend>.vercel.app/api/result?roll=${roll}`;
 
-      <div id="resultArea" class="result"></div>
-    </main>
-
-    <footer class="footer">
-      <small>Polite, rate-limited proxy — respects KTU servers. Built by Sonuzz.</small>
-    </footer>
-  </div>
-
-  <script>
-    const fetchBtn = document.getElementById('fetchBtn');
-    const rollInput = document.getElementById('roll');
-    const statusEl = document.getElementById('status');
-    const resultArea = document.getElementById('resultArea');
-    const themeToggle = document.getElementById('themeToggle');
-
-    // toggle theme
-    themeToggle.addEventListener('change', (e) => {
-      document.body.classList.toggle('theme-dark', !e.target.checked);
-      document.body.classList.toggle('theme-light', e.target.checked);
-    });
-
-    async function fetchResult(roll) {
-      resultArea.innerHTML = '';
-      statusEl.textContent = 'Requesting result...';
-      const endpoint = (new URL(window.location.href)).origin + '/api/result?roll=' + encodeURIComponent(roll);
-      // If hosting backend separately (e.g. Render), set ENDPOINT_URL here.
-      // const endpoint = 'https://your-render-app.onrender.com/api/result?roll=' + encodeURIComponent(roll);
-
-      // Basic client-side retry loop (gentle)
-      const maxClientAttempts = 6;
-      let attempt = 0;
-      while (attempt < maxClientAttempts) {
-        attempt++;
-        statusEl.textContent = `Attempt ${attempt}/${maxClientAttempts} — contacting server...`;
-        try {
-          const resp = await fetch(endpoint, { method: 'GET' });
-          if (resp.ok) {
-            const html = await resp.text();
-            statusEl.textContent = 'Result fetched — rendering...';
-            // Show raw HTML inside result area (or parse/extract on client)
-            resultArea.innerHTML = html;
-            statusEl.textContent = 'Done';
-            return;
-          } else {
-            const body = await resp.json().catch(() => ({}));
-            statusEl.textContent = `Server error: ${resp.status} ${body.error || ''}`;
-          }
-        } catch (err) {
-          statusEl.textContent = `Network error: ${err.message || err}`;
-        }
-
-        // gentle wait with small backoff
-        const wait = 500 * attempt;
-        statusEl.textContent += ` — retrying in ${Math.round(wait)}ms...`;
-        await new Promise(r => setTimeout(r, wait));
-      }
-
-      statusEl.textContent = 'Failed to fetch result after several attempts. Try again later.';
-    }
-
-    fetchBtn.addEventListener('click', () => {
-      const roll = rollInput.value.trim();
-      if (!roll) {
-        statusEl.textContent = 'Enter a roll number first.';
-        return;
-      }
-      fetchResult(roll);
-    });
-
-    // allow Enter key to submit
-    rollInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') fetchBtn.click();
-    });
-  </script>
+            fetch(endpoint)
+                .then(res => res.json())
+                .then(data => {
+                    resultDisplay.innerText = `Roll: ${data.roll} | Marks: ${data.marks}`;
+                })
+                .catch(err => {
+                    console.error("Fetch error:", err);
+                    resultDisplay.innerText = "Failed to fetch result. Try again.";
+                });
+        });
+    </script>
 </body>
 </html>
